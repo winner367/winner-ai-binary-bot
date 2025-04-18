@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { derivAPI } from '../services/deriv';
 import { AuthState, User } from '../types/auth';
@@ -11,7 +10,6 @@ export function useAuth() {
     error: null,
   });
 
-  // Initialize auth state on mount
   useEffect(() => {
     const initAuth = () => {
       const user = derivAPI.getCurrentUser();
@@ -26,7 +24,6 @@ export function useAuth() {
     initAuth();
   }, []);
 
-  // Login with email and password
   const login = useCallback(async (email: string, password: string) => {
     setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
     try {
@@ -57,7 +54,6 @@ export function useAuth() {
     }
   }, []);
 
-  // Login with Deriv OAuth
   const loginWithDeriv = useCallback(() => {
     setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
     
@@ -77,23 +73,22 @@ export function useAuth() {
     }
   }, []);
 
-  // Handle OAuth callback
-  const handleOAuthCallback = useCallback(async (code: string) => {
-    console.log("Handling OAuth callback with code:", code);
+  const handleOAuthCallback = useCallback(async (token: string) => {
+    console.log("Handling OAuth callback with token:", token);
     setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
     
-    if (!code || code.trim() === '') {
-      console.error("Empty or invalid authorization code");
+    if (!token || token.trim() === '') {
+      console.error("Empty or invalid authorization token");
       setAuthState(prev => ({
         ...prev,
         isLoading: false,
-        error: 'Invalid authorization code',
+        error: 'Invalid authorization token',
       }));
       return false;
     }
     
     try {
-      const user = await derivAPI.handleOAuthCallback(code);
+      const user = await derivAPI.handleOAuthCallback(token);
       console.log("OAuth callback result:", user ? "Success" : "Failed");
       
       if (user) {
@@ -123,7 +118,6 @@ export function useAuth() {
     }
   }, []);
 
-  // Logout
   const logout = useCallback(async () => {
     setAuthState(prev => ({ ...prev, isLoading: true }));
     
@@ -144,7 +138,6 @@ export function useAuth() {
     }
   }, []);
 
-  // Check if user is admin
   const isAdmin = useCallback(() => {
     return authState.user?.isAdmin === true;
   }, [authState.user]);

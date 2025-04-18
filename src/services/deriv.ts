@@ -1,4 +1,3 @@
-
 // Deriv API service
 import { User } from '../types/auth';
 import { Signal, BotConfig, BotPerformance, MarketType, ContractType } from '../types/trading';
@@ -109,12 +108,12 @@ export const derivAPI = {
     window.location.href = redirectUrl;
   },
   
-  handleOAuthCallback: async (code: string): Promise<User | null> => {
-    console.log("Processing OAuth callback with code:", code);
+  handleOAuthCallback: async (token: string): Promise<User | null> => {
+    console.log("Processing OAuth callback with token:", token);
     await delay(1000);
     
     // This is a mock implementation
-    // In a real app, you would exchange the code for an access token
+    // In a real app, you would use the token to authenticate
     const mockUser = {
       ...MOCK_USERS[1],
       id: `oauth-${Math.random().toString(36).substring(2, 9)}`,

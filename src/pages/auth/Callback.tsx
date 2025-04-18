@@ -18,22 +18,29 @@ export default function Callback() {
       console.log('Callback URL:', window.location.href);
       
       const queryParams = new URLSearchParams(location.search);
-      const code = queryParams.get('code');
       
-      console.log('Authorization code:', code);
+      // Deriv returns token1 instead of code
+      const token = queryParams.get('token1');
+      const account = queryParams.get('acct1');
+      const currency = queryParams.get('cur1');
       
-      if (!code) {
-        setError('Authorization code not found');
+      console.log('Authorization token:', token);
+      console.log('Account:', account);
+      console.log('Currency:', currency);
+      
+      if (!token) {
+        setError('Authorization token not found');
         toast({
           variant: "destructive",
           title: "Authentication Failed",
-          description: "Authorization code not found in URL",
+          description: "Authorization token not found in URL",
         });
         return;
       }
       
       try {
-        const success = await handleOAuthCallback(code);
+        // Pass the token instead of code for authentication
+        const success = await handleOAuthCallback(token);
         if (success) {
           toast({
             title: "Authentication Successful",
