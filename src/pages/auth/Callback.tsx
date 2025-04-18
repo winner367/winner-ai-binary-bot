@@ -14,15 +14,20 @@ export default function Callback() {
 
   useEffect(() => {
     const processCallback = async () => {
+      // Log the full URL for debugging
+      console.log('Callback URL:', window.location.href);
+      
       const queryParams = new URLSearchParams(location.search);
       const code = queryParams.get('code');
+      
+      console.log('Authorization code:', code);
       
       if (!code) {
         setError('Authorization code not found');
         toast({
           variant: "destructive",
           title: "Authentication Failed",
-          description: "Authorization code not found",
+          description: "Authorization code not found in URL",
         });
         return;
       }
@@ -44,13 +49,13 @@ export default function Callback() {
           });
         }
       } catch (err) {
+        console.error('OAuth callback error details:', err);
         setError('An error occurred during authentication');
         toast({
           variant: "destructive",
           title: "Authentication Error",
           description: "An error occurred during authentication",
         });
-        console.error('OAuth callback error:', err);
       }
     };
     

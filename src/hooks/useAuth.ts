@@ -62,10 +62,12 @@ export function useAuth() {
     setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
     
     try {
+      console.log("Initiating OAuth login with Deriv");
       derivAPI.loginWithOAuth();
       // The actual auth state will be updated when redirected back after OAuth
       return true;
     } catch (error) {
+      console.error("OAuth login error:", error);
       setAuthState(prev => ({
         ...prev,
         isLoading: false,
@@ -77,10 +79,23 @@ export function useAuth() {
 
   // Handle OAuth callback
   const handleOAuthCallback = useCallback(async (code: string) => {
+    console.log("Handling OAuth callback with code:", code);
     setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
+    
+    if (!code || code.trim() === '') {
+      console.error("Empty or invalid authorization code");
+      setAuthState(prev => ({
+        ...prev,
+        isLoading: false,
+        error: 'Invalid authorization code',
+      }));
+      return false;
+    }
     
     try {
       const user = await derivAPI.handleOAuthCallback(code);
+      console.log("OAuth callback result:", user ? "Success" : "Failed");
+      
       if (user) {
         setAuthState({
           isAuthenticated: true,
@@ -98,6 +113,7 @@ export function useAuth() {
         return false;
       }
     } catch (error) {
+      console.error("OAuth callback processing error:", error);
       setAuthState(prev => ({
         ...prev,
         isLoading: false,

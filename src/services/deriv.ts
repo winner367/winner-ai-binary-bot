@@ -6,6 +6,8 @@ import { Signal, BotConfig, BotPerformance, MarketType, ContractType } from '../
 const APP_ID = 71651; // Updated Deriv app ID
 export const OAUTH_REDIRECT_URL = `${window.location.origin}/auth/callback`;
 
+console.log("OAuth Redirect URL:", OAUTH_REDIRECT_URL);
+
 // Mock data for development
 const MOCK_USERS = [
   {
@@ -103,16 +105,24 @@ export const derivAPI = {
   loginWithOAuth: async (): Promise<void> => {
     // In a real implementation, this would redirect to Deriv OAuth
     const redirectUrl = `https://oauth.deriv.com/oauth2/authorize?app_id=${APP_ID}&l=en&redirect_uri=${encodeURIComponent(OAUTH_REDIRECT_URL)}`;
+    console.log("Redirecting to Deriv OAuth:", redirectUrl);
     window.location.href = redirectUrl;
   },
   
   handleOAuthCallback: async (code: string): Promise<User | null> => {
+    console.log("Processing OAuth callback with code:", code);
     await delay(1000);
+    
     // This is a mock implementation
     // In a real app, you would exchange the code for an access token
     const mockUser = {
       ...MOCK_USERS[1],
       id: `oauth-${Math.random().toString(36).substring(2, 9)}`,
+      // Update account balances to reflect new data
+      accountBalances: {
+        demo: Math.floor(2000 + Math.random() * 1000),
+        real: Math.floor(1000 + Math.random() * 500),
+      }
     };
     
     const { password: _, ...userWithoutPassword } = mockUser;
@@ -138,6 +148,21 @@ export const derivAPI = {
   // Account methods
   getAccountBalances: async (userId: string): Promise<{ demo: number; real: number }> => {
     await delay(800);
+    
+    // If user is logged in through OAuth, get from localStorage first
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr) as User;
+        if (user.accountBalances) {
+          return user.accountBalances;
+        }
+      } catch {
+        // Fall back to mock data on parse error
+      }
+    }
+    
+    // Fall back to mock data
     const user = MOCK_USERS.find((u) => u.id === userId);
     return user?.accountBalances || { demo: 0, real: 0 };
   },
