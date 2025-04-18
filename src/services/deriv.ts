@@ -3,7 +3,7 @@
 import { User } from '../types/auth';
 import { Signal, BotConfig, BotPerformance, MarketType, ContractType } from '../types/trading';
 
-const APP_ID = 71514; // Your Deriv app ID
+const APP_ID = 71651; // Updated Deriv app ID
 export const OAUTH_REDIRECT_URL = `${window.location.origin}/auth/callback`;
 
 // Mock data for development
