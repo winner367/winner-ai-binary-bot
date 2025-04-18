@@ -2,13 +2,86 @@
 import { ReactNode, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { Sidebar } from '@/components/ui/sidebar';
+import { 
+  Sidebar as ShadcnSidebar,
+  SidebarHeader,
+  SidebarContent,
+  SidebarFooter,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton
+} from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { LogOut, Menu } from 'lucide-react';
+import { LogOut, Menu, LayoutDashboard, Users, Settings } from 'lucide-react';
+import { User } from '@/types/auth';
 
 interface DashboardLayoutProps {
   children: ReactNode;
 }
+
+interface CustomSidebarProps {
+  user: User;
+}
+
+const CustomSidebar = ({ user }: CustomSidebarProps) => {
+  const isAdmin = user.isAdmin;
+  const navigate = useNavigate();
+
+  return (
+    <ShadcnSidebar>
+      <SidebarHeader>
+        <div className="p-2">
+          <h2 className="text-lg font-semibold">Winner AI Binary Bot</h2>
+          <p className="text-sm text-muted-foreground">
+            {user.name}
+          </p>
+        </div>
+      </SidebarHeader>
+      <SidebarContent>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton 
+              onClick={() => navigate('/dashboard')}
+              tooltip="Dashboard"
+            >
+              <LayoutDashboard className="mr-2" />
+              <span>Dashboard</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          {isAdmin && (
+            <>
+              <SidebarMenuItem>
+                <SidebarMenuButton 
+                  onClick={() => navigate('/admin/users')}
+                  tooltip="User Management"
+                >
+                  <Users className="mr-2" />
+                  <span>User Management</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton 
+                  onClick={() => navigate('/admin/settings')}
+                  tooltip="Settings"
+                >
+                  <Settings className="mr-2" />
+                  <span>Settings</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </>
+          )}
+        </SidebarMenu>
+      </SidebarContent>
+      <SidebarFooter>
+        <div className="p-2">
+          <p className="text-xs text-center text-muted-foreground">
+            © {new Date().getFullYear()} Winner AI
+          </p>
+        </div>
+      </SidebarFooter>
+    </ShadcnSidebar>
+  );
+};
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user, logout } = useAuth();
@@ -37,7 +110,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                    ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} 
                    md:relative md:translate-x-0`}
       >
-        <Sidebar user={user} />
+        <CustomSidebar user={user} />
       </div>
 
       {/* Main content */}

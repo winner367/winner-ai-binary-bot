@@ -28,7 +28,7 @@ import { Badge } from '@/components/ui/badge';
 import { MoreHorizontal, UserCheck, UserX, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { UserWithActivity } from '@/types/admin';
-import { adminService } from '@/services/admin';
+import { adminAPI } from '@/services/admin';
 
 export default function UserManagement() {
   const { toast } = useToast();
@@ -39,7 +39,7 @@ export default function UserManagement() {
     const fetchUsers = async () => {
       try {
         setIsLoading(true);
-        const fetchedUsers = await adminService.getAllUsers();
+        const fetchedUsers = await adminAPI.getAllUsers();
         setUsers(fetchedUsers);
       } catch (error) {
         console.error('Error fetching users:', error);
@@ -58,7 +58,7 @@ export default function UserManagement() {
 
   const handleUpdateAccessStatus = async (userId: string, newStatus: 'active' | 'limited' | 'revoked') => {
     try {
-      await adminService.updateUserAccessStatus(userId, newStatus);
+      await adminAPI.updateUserAccess(userId, newStatus);
       
       setUsers(users.map(user => 
         user.id === userId ? { ...user, accessStatus: newStatus } : user
