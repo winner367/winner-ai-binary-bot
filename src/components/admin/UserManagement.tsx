@@ -1,7 +1,12 @@
 
-import { useState } from 'react';
-import { adminAPI } from '@/services/admin';
-import { UserWithActivity } from '@/types/admin';
+import { useState, useEffect } from 'react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -11,222 +16,170 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Info, MoreHorizontal, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle 
-} from '@/components/ui/dialog';
+import { MoreHorizontal, UserCheck, UserX, Eye } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { UserWithActivity } from '@/types/admin';
+import { adminService } from '@/services/admin';
 
 export default function UserManagement() {
+  const { toast } = useToast();
   const [users, setUsers] = useState<UserWithActivity[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<UserWithActivity | null>(null);
-  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
-  const [actionType, setActionType] = useState<'limit' | 'revoke' | 'activate' | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch users on mount
-  useState(() => {
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        setIsLoading(true);
+        const fetchedUsers = await adminService.getAllUsers();
+        setUsers(fetchedUsers);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load users. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     fetchUsers();
-  });
+  }, [toast]);
 
-  const fetchUsers = async () => {
-    setIsLoading(true);
+  const handleUpdateAccessStatus = async (userId: string, newStatus: 'active' | 'limited' | 'revoked') => {
     try {
-      const fetchedUsers = await adminAPI.getAllUsers();
-      setUsers(fetchedUsers);
+      await adminService.updateUserAccessStatus(userId, newStatus);
+      
+      setUsers(users.map(user => 
+        user.id === userId ? { ...user, accessStatus: newStatus } : user
+      ));
+      
+      toast({
+        title: "Success",
+        description: `User access status updated to ${newStatus}.`,
+      });
     } catch (error) {
-      console.error('Error fetching users:', error);
-    } finally {
-      setIsLoading(false);
+      console.error('Error updating user status:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update user status. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
-  const handleUserAction = (user: UserWithActivity, action: 'limit' | 'revoke' | 'activate') => {
-    setSelectedUser(user);
-    setActionType(action);
-    setConfirmDialogOpen(true);
-  };
-
-  const confirmAction = async () => {
-    if (!selectedUser || !actionType) return;
-
-    try {
-      await adminAPI.updateUserAccess(selectedUser.id, actionType === 'activate' ? 'active' : actionType === 'limit' ? 'limited' : 'revoked');
-      setUsers(users.map(user => {
-        if (user.id === selectedUser.id) {
-          return {
-            ...user,
-            accessStatus: actionType === 'activate' ? 'active' : actionType === 'limit' ? 'limited' : 'revoked'
-          };
-        }
-        return user;
-      }));
-    } catch (error) {
-      console.error('Error updating user:', error);
-    } finally {
-      setConfirmDialogOpen(false);
-      setSelectedUser(null);
-      setActionType(null);
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleString();
-  };
-
-  const getStatusBadge = (status: string) => {
+  const getAccessStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
-        return <Badge variant="outline" className="bg-success-50 text-success border-success-200">Active</Badge>;
+        return <Badge className="bg-green-500">Active</Badge>;
       case 'limited':
-        return <Badge variant="outline" className="bg-warning-50 text-warning border-warning-200">Limited</Badge>;
+        return <Badge className="bg-yellow-500">Limited</Badge>;
       case 'revoked':
-        return <Badge variant="outline" className="bg-danger-50 text-danger border-danger-200">Revoked</Badge>;
+        return <Badge className="bg-red-500">Revoked</Badge>;
       default:
-        return <Badge variant="outline">Unknown</Badge>;
+        return <Badge>Unknown</Badge>;
     }
-  };
-
-  const formatWinRate = (rate: number) => {
-    return `${(rate * 100).toFixed(1)}%`;
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>User Management</CardTitle>
-        <CardDescription>
-          Manage user accounts and track user activity
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>User</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Last Active</TableHead>
-                <TableHead>Win Rate</TableHead>
-                <TableHead>Profit</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold">User Management</h1>
+        <p className="text-muted-foreground">
+          Manage and monitor user access and activity
+        </p>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>All Users</CardTitle>
+          <CardDescription>
+            View and manage all registered users on the platform
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="flex justify-center p-6">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-4">
-                    Loading users...
-                  </TableCell>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Access Status</TableHead>
+                  <TableHead>Last Active</TableHead>
+                  <TableHead>Win Rate</TableHead>
+                  <TableHead>Profit</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ) : users.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-4">
-                    No users found
-                  </TableCell>
-                </TableRow>
-              ) : (
-                users.map((user) => (
+              </TableHeader>
+              <TableBody>
+                {users.map((user) => (
                   <TableRow key={user.id}>
-                    <TableCell className="font-medium">
-                      <div>
-                        <div>{user.name}</div>
-                        <div className="text-xs text-muted-foreground">{user.email}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell>{getStatusBadge(user.accessStatus)}</TableCell>
-                    <TableCell>{formatDate(user.activity.lastActive)}</TableCell>
-                    <TableCell>
-                      <span className={user.activity.winRate > 0.6 ? 'text-success-600' : user.activity.winRate > 0.4 ? 'text-warning-600' : 'text-danger-600'}>
-                        {formatWinRate(user.activity.winRate)}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <span className={user.activity.profit >= 0 ? 'text-success-600' : 'text-danger-600'}>
-                        ${user.activity.profit.toFixed(2)}
-                      </span>
-                    </TableCell>
+                    <TableCell className="font-medium">{user.name}</TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>{getAccessStatusBadge(user.accessStatus)}</TableCell>
+                    <TableCell>{new Date(user.activity.lastActive).toLocaleDateString()}</TableCell>
+                    <TableCell>{user.activity.winRate}%</TableCell>
+                    <TableCell>${user.activity.profit.toFixed(2)}</TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
+                          <Button variant="ghost" size="sm">
                             <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Actions</span>
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          {user.accessStatus !== 'active' && (
-                            <DropdownMenuItem onClick={() => handleUserAction(user, 'activate')}>
-                              <CheckCircle className="mr-2 h-4 w-4 text-success" />
-                              Activate User
-                            </DropdownMenuItem>
-                          )}
-                          {user.accessStatus !== 'limited' && (
-                            <DropdownMenuItem onClick={() => handleUserAction(user, 'limit')}>
-                              <AlertCircle className="mr-2 h-4 w-4 text-warning" />
-                              Limit Access
-                            </DropdownMenuItem>
-                          )}
-                          {user.accessStatus !== 'revoked' && (
-                            <DropdownMenuItem onClick={() => handleUserAction(user, 'revoke')}>
-                              <XCircle className="mr-2 h-4 w-4 text-danger" />
-                              Revoke Access
-                            </DropdownMenuItem>
-                          )}
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => console.log('View details')}>
+                            <Eye className="mr-2 h-4 w-4" />
+                            View Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => handleUpdateAccessStatus(user.id, 'active')}
+                            disabled={user.accessStatus === 'active'}
+                          >
+                            <UserCheck className="mr-2 h-4 w-4" />
+                            Grant Access
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => handleUpdateAccessStatus(user.id, 'limited')}
+                            disabled={user.accessStatus === 'limited'}
+                          >
+                            <UserCheck className="mr-2 h-4 w-4 text-yellow-500" />
+                            Limit Access
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => handleUpdateAccessStatus(user.id, 'revoked')}
+                            disabled={user.accessStatus === 'revoked'}
+                            className="text-red-600"
+                          >
+                            <UserX className="mr-2 h-4 w-4" />
+                            Revoke Access
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
-
-        <Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Confirm Action</DialogTitle>
-              <DialogDescription>
-                {actionType === 'activate' && "This will restore the user's full access to the platform."}
-                {actionType === 'limit' && "This will limit the user's access to certain features."}
-                {actionType === 'revoke' && "This will completely revoke the user's access to the platform."}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="py-4">
-              <p>User: {selectedUser?.name}</p>
-              <p>Email: {selectedUser?.email}</p>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setConfirmDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={confirmAction} variant={actionType === 'revoke' ? 'destructive' : 'default'}>
-                Confirm
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </CardContent>
-    </Card>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }

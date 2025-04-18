@@ -2,7 +2,7 @@
 import { ReactNode, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import Sidebar from '@/components/ui/sidebar';
+import { Sidebar } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { LogOut, Menu } from 'lucide-react';
 
