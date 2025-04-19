@@ -41,7 +41,7 @@ export default function Callback() {
           return;
         }
         
-        // Pass the token for authentication
+        // Pass the token for authentication and account balance fetching
         const success = await handleOAuthCallback(token);
         if (success) {
           toast({

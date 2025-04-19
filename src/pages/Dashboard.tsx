@@ -34,7 +34,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 
 export default function Dashboard() {
-  const { user, isAuthenticated, selectAccount, getSelectedAccount } = useAuth();
+  const { user, isAuthenticated, selectAccount, getSelectedAccount, refreshBalances } = useAuth();
   const navigate = useNavigate();
   const [recentSignals, setRecentSignals] = useState<Signal[]>([]);
   const [selectedAccount, setSelectedAccount] = useState<AccountType>(getSelectedAccount());
@@ -50,7 +50,14 @@ export default function Dashboard() {
     if (isAuthenticated && user) {
       fetchAccountBalances();
     }
-  }, [isAuthenticated, user?.id, selectedAccount]);
+  }, [isAuthenticated, user?.id]);
+
+  // Update local balances when user object changes
+  useEffect(() => {
+    if (user?.accountBalances) {
+      setAccountBalances(user.accountBalances);
+    }
+  }, [user?.accountBalances]);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -76,9 +83,16 @@ export default function Dashboard() {
     
     setIsLoadingBalances(true);
     try {
-      // Get the latest balances from Deriv
-      const balances = await derivAPI.fetchAccountBalances();
-      setAccountBalances(balances);
+      // Call the refreshBalances method from useAuth
+      const success = await refreshBalances();
+      
+      if (!success) {
+        toast({
+          title: "Balance Update",
+          description: "Could not refresh balances at this time",
+          variant: "destructive"
+        });
+      }
     } catch (error) {
       console.error('Error fetching account balances:', error);
       toast({

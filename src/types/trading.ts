@@ -1,16 +1,6 @@
-
-export type MarketType = 'crypto' | 'forex' | 'commodities' | 'stocks' | 'indices';
-
-export type ContractType = 
-  | 'CALL' 
-  | 'PUT' 
-  | 'DIGITEVEN' 
-  | 'DIGITODD' 
-  | 'DIGITOVER' 
-  | 'DIGITUNDER' 
-  | 'DIGITDIFF' 
-  | 'DIGITMATH';
-
+export type MarketType = 'forex' | 'stocks' | 'commodities' | 'crypto' | 'synthetic_indices';
+export type ContractType = 'CALL' | 'PUT' | 'RISE' | 'FALL' | 'HIGHER' | 'LOWER';
+export type DurationUnit = 's' | 'm' | 'h' | 'd';
 export type AccountType = 'demo' | 'real';
 
 export interface Signal {
@@ -26,32 +16,33 @@ export interface Signal {
   contractType: ContractType;
   contractDuration: number;
   prediction: string;
-  chartData?: unknown;
 }
 
-export interface BotConfig {
-  market: MarketType;
+export type BotConfig = {
   symbol: string;
-  strategy: 'probability' | 'martingale' | 'digit';
+  market: MarketType; // This is now required
   contractType: ContractType;
+  stakeAmount: number;
   duration: number;
-  martingaleLevel?: number;
-  digitPercentage?: number;
-  takeProfit?: number;
+  durationUnit: DurationUnit;
+  maxTrades: number;
+  martingaleEnabled: boolean;
+  martingaleFactor?: number;
   stopLoss?: number;
+  takeProfit?: number;
   cooldownAfterLosses?: number;
-}
+};
 
-export interface TradeHistory {
+export type TradeHistory = {
   id: string;
   time: string;
   stake: number;
   payout: number;
   profit: number;
-  result: 'win' | 'loss';
+  result: 'win' | 'loss'; // Strictly typed to only allow 'win' or 'loss'
   contract: ContractType;
   symbol: string;
-}
+};
 
 export interface BotPerformance {
   totalStake: number;
@@ -60,8 +51,8 @@ export interface BotPerformance {
   contractsWon: number;
   contractsLost: number;
   totalProfit: number;
-  tradesHistory?: TradeHistory[];
-  avgStakePerTrade?: number;
-  avgPayoutPerWin?: number;
-  winRate?: number;
+  tradesHistory: TradeHistory[];
+  avgStakePerTrade: number;
+  avgPayoutPerWin: number;
+  winRate: number;
 }
