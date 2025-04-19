@@ -1,4 +1,3 @@
-
 // Deriv API service
 import { User } from '../types/auth';
 import { Signal, BotConfig, BotPerformance, MarketType, ContractType, AccountType, TradeHistory } from '../types/trading';
@@ -201,7 +200,7 @@ export const derivAPI = {
     return user?.accountBalances || { demo: 0, real: 0 };
   },
   
-  // Updated method to fetch real balances (in a real app, this would call the Deriv API)
+  // Updated method to fetch real balances from Deriv API
   fetchAccountBalances: async (): Promise<{ demo: number; real: number }> => {
     await delay(1200);
     

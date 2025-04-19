@@ -21,7 +21,7 @@ export default function Callback() {
         
         const queryParams = new URLSearchParams(location.search);
         
-        // Deriv returns token1 instead of code
+        // Deriv returns token1 for first account
         const token = queryParams.get('token1');
         const account = queryParams.get('acct1');
         const currency = queryParams.get('cur1');
@@ -41,7 +41,7 @@ export default function Callback() {
           return;
         }
         
-        // Pass the token instead of code for authentication
+        // Pass the token for authentication
         const success = await handleOAuthCallback(token);
         if (success) {
           toast({

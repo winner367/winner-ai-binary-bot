@@ -98,11 +98,12 @@ export default function BotConfiguratorEnhanced({ onSubmit }: BotConfiguratorPro
       strategy: values.strategy,
       contractType: values.contractType,
       duration: values.duration,
-      martingaleLevel: values.martingaleLevel,
-      digitPercentage: values.digitPercentage,
-      takeProfit: values.takeProfit,
-      stopLoss: values.stopLoss,
-      cooldownAfterLosses: values.cooldownAfterLosses,
+      // Include optional fields only if they have values
+      ...(values.martingaleLevel !== undefined && { martingaleLevel: values.martingaleLevel }),
+      ...(values.digitPercentage !== undefined && { digitPercentage: values.digitPercentage }),
+      ...(values.takeProfit !== undefined && { takeProfit: values.takeProfit }),
+      ...(values.stopLoss !== undefined && { stopLoss: values.stopLoss }),
+      ...(values.cooldownAfterLosses !== undefined && { cooldownAfterLosses: values.cooldownAfterLosses }),
     };
     
     onSubmit(botConfig);
