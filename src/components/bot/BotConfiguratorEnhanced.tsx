@@ -91,7 +91,21 @@ export default function BotConfiguratorEnhanced({ onSubmit }: BotConfiguratorPro
   }, [form.watch('market'), form]);
 
   const handleSubmit = (values: FormValues) => {
-    onSubmit(values);
+    // Ensure all required fields are present for the BotConfig type
+    const botConfig: BotConfig = {
+      market: values.market,
+      symbol: values.symbol,
+      strategy: values.strategy,
+      contractType: values.contractType,
+      duration: values.duration,
+      martingaleLevel: values.martingaleLevel,
+      digitPercentage: values.digitPercentage,
+      takeProfit: values.takeProfit,
+      stopLoss: values.stopLoss,
+      cooldownAfterLosses: values.cooldownAfterLosses,
+    };
+    
+    onSubmit(botConfig);
   };
 
   return (

@@ -15,6 +15,7 @@ export function useAuth() {
   useEffect(() => {
     const initAuth = () => {
       const user = derivAPI.getCurrentUser();
+      console.log("Init auth user:", user);
       setAuthState({
         isAuthenticated: !!user,
         isLoading: false,
@@ -90,10 +91,13 @@ export function useAuth() {
     }
     
     try {
+      // In a real implementation, this would exchange the token for an access token,
+      // then use that to fetch user data from Deriv API
       const user = await derivAPI.handleOAuthCallback(token);
       console.log("OAuth callback result:", user ? "Success" : "Failed");
       
       if (user) {
+        // Fetch fresh account balances after successful login
         setAuthState({
           isAuthenticated: true,
           isLoading: false,

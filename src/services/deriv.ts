@@ -1,6 +1,7 @@
+
 // Deriv API service
 import { User } from '../types/auth';
-import { Signal, BotConfig, BotPerformance, MarketType, ContractType, AccountType } from '../types/trading';
+import { Signal, BotConfig, BotPerformance, MarketType, ContractType, AccountType, TradeHistory } from '../types/trading';
 
 const APP_ID = 71651; // Deriv app ID
 export const OAUTH_REDIRECT_URL = `${window.location.origin}/auth/callback`;
@@ -129,20 +130,33 @@ export const derivAPI = {
     try {
       // This is a mock implementation
       // In a real app, you would use the token to authenticate and fetch real account details
-      const mockUser = {
-        ...MOCK_USERS[1],
-        id: `oauth-${Math.random().toString(36).substring(2, 9)}`,
-        // Update account balances to reflect new data
-        accountBalances: {
-          demo: Math.floor(2000 + Math.random() * 1000),
-          real: Math.floor(1000 + Math.random() * 500),
-        },
-        selectedAccount: 'demo' as AccountType // Default to demo account
+      
+      // In a real implementation, you would make an API call to Deriv
+      // to exchange the token for account details and balances
+      const mockOAuthResponse = {
+        accountId: `deriv-${Math.random().toString(36).substring(2, 9)}`,
+        name: "Deriv Trader",
+        email: `trader${Math.floor(Math.random() * 1000)}@example.com`,
+        balances: {
+          demo: Math.floor(5000 + Math.random() * 5000), // Random demo balance between 5000-10000
+          real: Math.floor(1000 + Math.random() * 4000), // Random real balance between 1000-5000
+        }
       };
       
-      const { password: _, ...userWithoutPassword } = mockUser;
-      localStorage.setItem('user', JSON.stringify(userWithoutPassword));
-      return userWithoutPassword;
+      // Create user object from OAuth response
+      const user: User = {
+        id: mockOAuthResponse.accountId,
+        name: mockOAuthResponse.name,
+        email: mockOAuthResponse.email,
+        isAdmin: false,
+        accountBalances: mockOAuthResponse.balances,
+        accessStatus: 'active',
+        selectedAccount: 'demo', // Default to demo account
+      };
+      
+      localStorage.setItem('user', JSON.stringify(user));
+      console.log("Successfully authenticated user:", user);
+      return user;
     } catch (error) {
       console.error("Error processing OAuth callback:", error);
       return null;
@@ -174,6 +188,7 @@ export const derivAPI = {
       try {
         const user = JSON.parse(userStr) as User;
         if (user.accountBalances) {
+          console.log("Fetching account balances for user:", userId, user.accountBalances);
           return user.accountBalances;
         }
       } catch {
@@ -184,6 +199,35 @@ export const derivAPI = {
     // Fall back to mock data
     const user = MOCK_USERS.find((u) => u.id === userId);
     return user?.accountBalances || { demo: 0, real: 0 };
+  },
+  
+  // Updated method to fetch real balances (in a real app, this would call the Deriv API)
+  fetchAccountBalances: async (): Promise<{ demo: number; real: number }> => {
+    await delay(1200);
+    
+    // In a real implementation, this would call the Deriv API to get the actual balances
+    const userStr = localStorage.getItem('user');
+    if (!userStr) return { demo: 0, real: 0 };
+    
+    try {
+      const user = JSON.parse(userStr) as User;
+      
+      // Simulate getting updated balances
+      const updatedBalances = {
+        demo: user.accountBalances?.demo || 5000 + Math.floor(Math.random() * 1000),
+        real: user.accountBalances?.real || 1000 + Math.floor(Math.random() * 500),
+      };
+      
+      // Update the stored user with new balances
+      user.accountBalances = updatedBalances;
+      localStorage.setItem('user', JSON.stringify(user));
+      
+      console.log("Updated account balances:", updatedBalances);
+      return updatedBalances;
+    } catch (error) {
+      console.error("Error fetching account balances:", error);
+      return { demo: 0, real: 0 };
+    }
   },
   
   setSelectedAccount: async (accountType: AccountType): Promise<boolean> => {
@@ -259,7 +303,7 @@ export const derivAPI = {
     const avgPayoutPerWin = avgStakePerTrade * 1.8; // 80% payout
     const totalPayout = avgPayoutPerWin * contractsWon;
     
-    const tradesHistory = Array.from({ length: runs }, (_, i) => {
+    const tradesHistory: TradeHistory[] = Array.from({ length: runs }, (_, i) => {
       const isWin = i < contractsWon;
       const stake = avgStakePerTrade + Math.random() * 5;
       const payout = isWin ? stake * 1.8 : 0;
