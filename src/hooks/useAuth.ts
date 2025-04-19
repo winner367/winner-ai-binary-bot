@@ -1,6 +1,8 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { derivAPI } from '../services/deriv';
 import { AuthState, User } from '../types/auth';
+import { AccountType } from '../types/trading';
 
 export function useAuth() {
   const [authState, setAuthState] = useState<AuthState>({
@@ -142,6 +144,29 @@ export function useAuth() {
     return authState.user?.isAdmin === true;
   }, [authState.user]);
 
+  const selectAccount = useCallback(async (accountType: AccountType) => {
+    if (!authState.user) return false;
+    
+    try {
+      const success = await derivAPI.setSelectedAccount(accountType);
+      if (success) {
+        setAuthState(prev => ({
+          ...prev,
+          user: prev.user ? { ...prev.user, selectedAccount: accountType } : null,
+        }));
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Error selecting account:", error);
+      return false;
+    }
+  }, [authState.user]);
+
+  const getSelectedAccount = useCallback((): AccountType => {
+    return authState.user?.selectedAccount || 'demo';
+  }, [authState.user]);
+
   return {
     ...authState,
     login,
@@ -149,5 +174,7 @@ export function useAuth() {
     handleOAuthCallback,
     logout,
     isAdmin,
+    selectAccount,
+    getSelectedAccount,
   };
 }

@@ -9,6 +9,7 @@ export interface User {
     real: number;
   };
   accessStatus: 'active' | 'limited' | 'revoked';
+  selectedAccount?: 'demo' | 'real';
 }
 
 export interface AdminUser extends User {

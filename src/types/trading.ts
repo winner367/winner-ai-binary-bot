@@ -11,6 +11,8 @@ export type ContractType =
   | 'DIGITDIFF' 
   | 'DIGITMATH';
 
+export type AccountType = 'demo' | 'real';
+
 export interface Signal {
   id: string;
   market: MarketType;
@@ -40,6 +42,17 @@ export interface BotConfig {
   cooldownAfterLosses?: number;
 }
 
+export interface TradeHistory {
+  id: string;
+  time: string;
+  stake: number;
+  payout: number;
+  profit: number;
+  result: 'win' | 'loss';
+  contract: ContractType;
+  symbol: string;
+}
+
 export interface BotPerformance {
   totalStake: number;
   totalPayout: number;
@@ -47,4 +60,8 @@ export interface BotPerformance {
   contractsWon: number;
   contractsLost: number;
   totalProfit: number;
+  tradesHistory?: TradeHistory[];
+  avgStakePerTrade?: number;
+  avgPayoutPerWin?: number;
+  winRate?: number;
 }

@@ -1,11 +1,25 @@
 // Deriv API service
 import { User } from '../types/auth';
-import { Signal, BotConfig, BotPerformance, MarketType, ContractType } from '../types/trading';
+import { Signal, BotConfig, BotPerformance, MarketType, ContractType, AccountType } from '../types/trading';
 
-const APP_ID = 71651; // Updated Deriv app ID
+const APP_ID = 71651; // Deriv app ID
 export const OAUTH_REDIRECT_URL = `${window.location.origin}/auth/callback`;
 
 console.log("OAuth Redirect URL:", OAUTH_REDIRECT_URL);
+
+// Continuous indices options for the Deriv platform
+export const CONTINUOUS_INDICES = [
+  { value: 'VOLU10_1S', label: 'Volatility 10 (1s) Index' },
+  { value: 'VOLU10', label: 'Volatility 10 Index' },
+  { value: 'VOLU25_1S', label: 'Volatility 25 (1s) Index' },
+  { value: 'VOLU25', label: 'Volatility 25 Index' },
+  { value: 'VOLU50_1S', label: 'Volatility 50 (1s) Index' },
+  { value: 'VOLU50', label: 'Volatility 50 Index' },
+  { value: 'VOLU75_1S', label: 'Volatility 75 (1s) Index' },
+  { value: 'VOLU75', label: 'Volatility 75 Index' },
+  { value: 'VOLU100_1S', label: 'Volatility 100 (1s) Index' },
+  { value: 'VOLU100', label: 'Volatility 100 Index' }
+];
 
 // Mock data for development
 const MOCK_USERS = [
@@ -112,21 +126,27 @@ export const derivAPI = {
     console.log("Processing OAuth callback with token:", token);
     await delay(1000);
     
-    // This is a mock implementation
-    // In a real app, you would use the token to authenticate
-    const mockUser = {
-      ...MOCK_USERS[1],
-      id: `oauth-${Math.random().toString(36).substring(2, 9)}`,
-      // Update account balances to reflect new data
-      accountBalances: {
-        demo: Math.floor(2000 + Math.random() * 1000),
-        real: Math.floor(1000 + Math.random() * 500),
-      }
-    };
-    
-    const { password: _, ...userWithoutPassword } = mockUser;
-    localStorage.setItem('user', JSON.stringify(userWithoutPassword));
-    return userWithoutPassword;
+    try {
+      // This is a mock implementation
+      // In a real app, you would use the token to authenticate and fetch real account details
+      const mockUser = {
+        ...MOCK_USERS[1],
+        id: `oauth-${Math.random().toString(36).substring(2, 9)}`,
+        // Update account balances to reflect new data
+        accountBalances: {
+          demo: Math.floor(2000 + Math.random() * 1000),
+          real: Math.floor(1000 + Math.random() * 500),
+        },
+        selectedAccount: 'demo' as AccountType // Default to demo account
+      };
+      
+      const { password: _, ...userWithoutPassword } = mockUser;
+      localStorage.setItem('user', JSON.stringify(userWithoutPassword));
+      return userWithoutPassword;
+    } catch (error) {
+      console.error("Error processing OAuth callback:", error);
+      return null;
+    }
   },
   
   logout: async (): Promise<void> => {
@@ -166,6 +186,33 @@ export const derivAPI = {
     return user?.accountBalances || { demo: 0, real: 0 };
   },
   
+  setSelectedAccount: async (accountType: AccountType): Promise<boolean> => {
+    const userStr = localStorage.getItem('user');
+    if (!userStr) return false;
+    
+    try {
+      const user = JSON.parse(userStr) as User;
+      user.selectedAccount = accountType;
+      localStorage.setItem('user', JSON.stringify(user));
+      return true;
+    } catch (error) {
+      console.error("Error setting selected account:", error);
+      return false;
+    }
+  },
+  
+  getSelectedAccount: (): AccountType => {
+    const userStr = localStorage.getItem('user');
+    if (!userStr) return 'demo';
+    
+    try {
+      const user = JSON.parse(userStr) as User;
+      return user.selectedAccount || 'demo';
+    } catch {
+      return 'demo';
+    }
+  },
+  
   // AI Signal methods
   getSignals: async (): Promise<Signal[]> => {
     await delay(1200);
@@ -202,13 +249,44 @@ export const derivAPI = {
   // Bot methods
   runBot: async (config: BotConfig): Promise<BotPerformance> => {
     await delay(2000);
+    
+    // Generate more detailed performance metrics
+    const runs = Math.floor(10 + Math.random() * 20); // 10-30 runs
+    const contractsWon = Math.floor(runs * (0.6 + Math.random() * 0.3)); // 60-90% win rate
+    const contractsLost = runs - contractsWon;
+    const avgStakePerTrade = Math.floor(10 + Math.random() * 20); // $10-30 per trade
+    const totalStake = avgStakePerTrade * runs;
+    const avgPayoutPerWin = avgStakePerTrade * 1.8; // 80% payout
+    const totalPayout = avgPayoutPerWin * contractsWon;
+    
+    const tradesHistory = Array.from({ length: runs }, (_, i) => {
+      const isWin = i < contractsWon;
+      const stake = avgStakePerTrade + Math.random() * 5;
+      const payout = isWin ? stake * 1.8 : 0;
+      
+      return {
+        id: `trade-${i + 1}`,
+        time: new Date(Date.now() - (runs - i) * 60000).toISOString(),
+        stake,
+        payout,
+        profit: isWin ? payout - stake : -stake,
+        result: isWin ? 'win' : 'loss',
+        contract: config.contractType,
+        symbol: config.symbol,
+      };
+    });
+    
     return {
-      totalStake: 100,
-      totalPayout: 180,
-      runs: 10,
-      contractsWon: 8,
-      contractsLost: 2,
-      totalProfit: 80,
+      totalStake,
+      totalPayout,
+      runs,
+      contractsWon,
+      contractsLost,
+      totalProfit: totalPayout - totalStake,
+      tradesHistory,
+      avgStakePerTrade,
+      avgPayoutPerWin,
+      winRate: contractsWon / runs,
     };
   },
   
