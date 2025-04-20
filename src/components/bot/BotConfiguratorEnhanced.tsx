@@ -91,14 +91,19 @@ export default function BotConfiguratorEnhanced({ onSubmit }: BotConfiguratorPro
   }, [form.watch('market'), form]);
 
   const handleSubmit = (values: FormValues) => {
-    // Ensure all required fields are present for the BotConfig type
+    // Create a config object that matches the BotConfig interface
     const botConfig: BotConfig = {
       market: values.market,
       symbol: values.symbol,
-      strategy: values.strategy,
       contractType: values.contractType,
       duration: values.duration,
-      // Include optional fields only if they have values
+      // Add required properties
+      stakeAmount: 10, // Default stake amount
+      durationUnit: 'm', // Default to minutes
+      maxTrades: 10, // Default max trades
+      martingaleEnabled: values.strategy === 'martingale',
+      // Include optional fields
+      strategy: values.strategy,
       ...(values.martingaleLevel !== undefined && { martingaleLevel: values.martingaleLevel }),
       ...(values.digitPercentage !== undefined && { digitPercentage: values.digitPercentage }),
       ...(values.takeProfit !== undefined && { takeProfit: values.takeProfit }),

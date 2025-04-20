@@ -35,6 +35,8 @@ export type BotConfig = {
   cooldownAfterLosses?: number;
   strategy?: StrategyType;
   digitPercentage?: number;
+  // Add the missing property that's being used in the components
+  martingaleLevel?: number;
 };
 
 export type TradeHistory = {

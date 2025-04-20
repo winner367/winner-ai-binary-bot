@@ -90,11 +90,17 @@ export default function BotConfigurator({ onSubmit }: BotConfiguratorProps) {
     const config: BotConfig = {
       market,
       symbol,
-      strategy,
       contractType,
       duration,
-      martingaleLevel,
-      digitPercentage,
+      // Add the required properties to match BotConfig type
+      stakeAmount: 10, // Default stake amount
+      durationUnit: 'm', // Default to minutes
+      maxTrades: 10, // Default max trades
+      martingaleEnabled: strategy === 'martingale',
+      // Add optional properties based on strategy
+      ...(strategy === 'martingale' && { martingaleLevel }),
+      ...(strategy === 'digit' && { digitPercentage }),
+      strategy,
       takeProfit,
       stopLoss,
       cooldownAfterLosses,
