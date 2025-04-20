@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { derivAPI } from '../services/deriv';
 import { AuthState, User } from '../types/auth';

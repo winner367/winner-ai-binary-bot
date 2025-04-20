@@ -21,14 +21,20 @@ export default function Callback() {
         
         const queryParams = new URLSearchParams(location.search);
         
-        // Deriv returns token1 for first account
-        const token = queryParams.get('token1');
-        const account = queryParams.get('acct1');
-        const currency = queryParams.get('cur1');
+        // Check for token1 or token2 - Deriv returns these parameters
+        const token1 = queryParams.get('token1');
+        const token2 = queryParams.get('token2');
+        const token = token1 || token2;
         
-        console.log('Authorization token:', token);
-        console.log('Account:', account);
-        console.log('Currency:', currency);
+        // Additional params from Deriv for debugging
+        const account1 = queryParams.get('acct1');
+        const account2 = queryParams.get('acct2');
+        const currency1 = queryParams.get('cur1');
+        const currency2 = queryParams.get('cur2');
+        
+        console.log('Authorization tokens:', { token1, token2 });
+        console.log('Accounts:', { account1, account2 });
+        console.log('Currencies:', { currency1, currency2 });
         
         if (!token) {
           setError('Authorization token not found');
@@ -48,10 +54,8 @@ export default function Callback() {
             title: "Authentication Successful",
             description: "Welcome to Winner AI Binary Bot!",
           });
-          // Use a short delay before redirecting to ensure toast is visible
-          setTimeout(() => {
-            navigate('/dashboard', { replace: true }); // Replace the current history entry
-          }, 500);
+          // Navigate directly to dashboard without delay
+          navigate('/dashboard', { replace: true }); // Replace the current history entry
         } else {
           setError('Failed to authenticate with Deriv');
           toast({

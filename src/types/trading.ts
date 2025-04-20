@@ -1,5 +1,6 @@
-export type MarketType = 'forex' | 'stocks' | 'commodities' | 'crypto' | 'synthetic_indices';
-export type ContractType = 'CALL' | 'PUT' | 'RISE' | 'FALL' | 'HIGHER' | 'LOWER';
+
+export type MarketType = 'forex' | 'stocks' | 'commodities' | 'crypto' | 'synthetic_indices' | 'indices';
+export type ContractType = 'CALL' | 'PUT' | 'RISE' | 'FALL' | 'HIGHER' | 'LOWER' | 'DIGITEVEN' | 'DIGITODD' | 'DIGITOVER' | 'DIGITUNDER' | 'DIGITDIFF' | 'DIGITMATH';
 export type DurationUnit = 's' | 'm' | 'h' | 'd';
 export type AccountType = 'demo' | 'real';
 

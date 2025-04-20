@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import BotConfiguratorEnhanced from '@/components/bot/BotConfiguratorEnhanced';
@@ -29,7 +28,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
 export default function BinaryBot() {
-  const { user, getSelectedAccount } = useAuth();
+  const { user, getSelectedAccount, refreshBalances } = useAuth();
   const [activeConfig, setActiveConfig] = useState<BotConfig | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [performance, setPerformance] = useState<BotPerformance | null>(null);
@@ -50,13 +49,15 @@ export default function BinaryBot() {
     try {
       const success = await derivAPI.uploadBotFile(file);
       if (success) {
-        // In a real implementation, this would parse the XML and set the config
         setActiveConfig({
-          market: 'indices',
+          market: 'synthetic_indices',
           symbol: 'VOLU50',
           contractType: 'CALL',
           duration: 15,
-          strategy: 'probability',
+          durationUnit: 'm',
+          stakeAmount: 10,
+          maxTrades: 10,
+          martingaleEnabled: false
         });
         
         toast({
@@ -158,7 +159,6 @@ export default function BinaryBot() {
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left column - Bot setup */}
           <div className="lg:col-span-2 space-y-6">
             <Tabs defaultValue="config" className="w-full">
               <TabsList>
@@ -186,9 +186,7 @@ export default function BinaryBot() {
             </Tabs>
           </div>
           
-          {/* Right column - Controls & Performance */}
           <div className="space-y-6">
-            {/* Bot Controls */}
             <Card>
               <CardHeader>
                 <CardTitle>Bot Controls</CardTitle>
@@ -248,7 +246,7 @@ export default function BinaryBot() {
                         Contract: <span className="text-foreground">{activeConfig.contractType}</span>
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Strategy: <span className="text-foreground">{activeConfig.strategy}</span>
+                        Duration: <span className="text-foreground">{activeConfig.duration} {activeConfig.durationUnit}</span>
                       </p>
                       <p className="text-xs text-muted-foreground">
                         Account: <span className="text-foreground">{selectedAccount.toUpperCase()}</span>
@@ -259,7 +257,6 @@ export default function BinaryBot() {
               </CardContent>
             </Card>
             
-            {/* Performance Summary */}
             <Card>
               <CardHeader>
                 <CardTitle>Performance Summary</CardTitle>
@@ -307,7 +304,6 @@ export default function BinaryBot() {
                       </div>
                     </div>
                     
-                    {/* Trade History */}
                     {performance.tradesHistory && performance.tradesHistory.length > 0 && (
                       <div className="pt-3 border-t mt-3">
                         <p className="text-sm font-medium mb-2">Trade History</p>

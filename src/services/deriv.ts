@@ -2,7 +2,7 @@
 import { User } from '../types/auth';
 import { Signal, BotConfig, BotPerformance, MarketType, ContractType, AccountType, TradeHistory } from '../types/trading';
 
-const APP_ID = 71724; // Updated Deriv app ID
+const APP_ID = 71724; // Deriv app ID
 export const OAUTH_REDIRECT_URL = `${window.location.origin}/auth/callback`;
 
 console.log("OAuth Redirect URL:", OAUTH_REDIRECT_URL);
@@ -134,9 +134,9 @@ export const derivAPI = {
       // Simulating a real API call to Deriv with the token
       console.log("Exchanging token for account details with APP_ID:", APP_ID);
       
-      // Mock response with more realistic data
+      // Mock response with more realistic data based on the token
       const mockOAuthResponse = {
-        accountId: `deriv-${Math.random().toString(36).substring(2, 9)}`,
+        accountId: `deriv-${token.substring(0, 8)}`,
         name: "Deriv Trader",
         email: `trader${Math.floor(Math.random() * 1000)}@example.com`,
         // In a real implementation, these values would come from the Deriv API
@@ -208,7 +208,7 @@ export const derivAPI = {
   
   // Updated method to fetch real balances from Deriv API
   fetchAccountBalances: async (): Promise<{ demo: number; real: number }> => {
-    console.log("Fetching latest account balances from Deriv...");
+    console.log("Fetching latest account balances from Deriv API using APP_ID:", APP_ID);
     
     // In a real implementation, this would call the Deriv API to get the actual balances
     // using the authorized session token
@@ -225,19 +225,14 @@ export const derivAPI = {
       console.log(`Making balance API request with APP_ID: ${APP_ID}`);
       await delay(1200); // Simulate network latency
       
-      // In a real implementation, this would use the Deriv API client
-      // to fetch the actual balances for both accounts
-      
       // For demo purposes, we'll simulate getting updated balances
       // In production, replace this with real API calls to Deriv
-      const currentDemoBalance = user.accountBalances?.demo || 5000;
-      const currentRealBalance = user.accountBalances?.real || 1000;
       
       // Simulate balance changes (small random fluctuations)
       // In a real app, these would be the actual balances returned from the API
       const updatedBalances = {
-        demo: parseFloat((currentDemoBalance + (Math.random() * 200 - 100)).toFixed(2)),
-        real: parseFloat((currentRealBalance + (Math.random() * 100 - 50)).toFixed(2)),
+        demo: 5000 + Math.floor(Math.random() * 1000), // More realistic demo balance
+        real: 2000 + Math.floor(Math.random() * 500),  // More realistic real balance
       };
       
       console.log("Previous balances:", user.accountBalances);
