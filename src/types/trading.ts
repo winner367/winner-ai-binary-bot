@@ -3,6 +3,7 @@ export type MarketType = 'forex' | 'stocks' | 'commodities' | 'crypto' | 'synthe
 export type ContractType = 'CALL' | 'PUT' | 'RISE' | 'FALL' | 'HIGHER' | 'LOWER' | 'DIGITEVEN' | 'DIGITODD' | 'DIGITOVER' | 'DIGITUNDER' | 'DIGITDIFF' | 'DIGITMATH';
 export type DurationUnit = 's' | 'm' | 'h' | 'd';
 export type AccountType = 'demo' | 'real';
+export type StrategyType = 'probability' | 'martingale' | 'digit';
 
 export interface Signal {
   id: string;
@@ -21,7 +22,7 @@ export interface Signal {
 
 export type BotConfig = {
   symbol: string;
-  market: MarketType; // This is now required
+  market: MarketType;
   contractType: ContractType;
   stakeAmount: number;
   duration: number;
@@ -32,6 +33,8 @@ export type BotConfig = {
   stopLoss?: number;
   takeProfit?: number;
   cooldownAfterLosses?: number;
+  strategy?: StrategyType;
+  digitPercentage?: number;
 };
 
 export type TradeHistory = {
@@ -40,7 +43,7 @@ export type TradeHistory = {
   stake: number;
   payout: number;
   profit: number;
-  result: 'win' | 'loss'; // Strictly typed to only allow 'win' or 'loss'
+  result: 'win' | 'loss';
   contract: ContractType;
   symbol: string;
 };

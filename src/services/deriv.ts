@@ -322,6 +322,7 @@ export const derivAPI = {
     const avgPayoutPerWin = avgStakePerTrade * 1.8; // 80% payout
     const totalPayout = avgPayoutPerWin * contractsWon;
     
+    // Generate mock trade history with properly typed result
     const tradesHistory: TradeHistory[] = Array.from({ length: runs }, (_, i) => {
       const isWin = i < contractsWon;
       const stake = avgStakePerTrade + Math.random() * 5;
@@ -333,7 +334,7 @@ export const derivAPI = {
         stake,
         payout,
         profit: isWin ? payout - stake : -stake,
-        result: isWin ? 'win' : 'loss', // Fixed to match the TradeHistory type
+        result: isWin ? 'win' : 'loss',
         contract: config.contractType,
         symbol: config.symbol,
       };

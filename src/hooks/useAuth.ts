@@ -171,6 +171,26 @@ export function useAuth() {
     return authState.user?.selectedAccount || 'demo';
   }, [authState.user]);
 
+  // Add the missing refreshBalances function
+  const refreshBalances = useCallback(async () => {
+    if (!authState.user) return false;
+    
+    try {
+      const balances = await derivAPI.fetchAccountBalances();
+      setAuthState(prev => ({
+        ...prev,
+        user: prev.user ? { 
+          ...prev.user, 
+          accountBalances: balances 
+        } : null,
+      }));
+      return true;
+    } catch (error) {
+      console.error("Error refreshing balances:", error);
+      return false;
+    }
+  }, [authState.user]);
+
   return {
     ...authState,
     login,
@@ -180,5 +200,6 @@ export function useAuth() {
     isAdmin,
     selectAccount,
     getSelectedAccount,
+    refreshBalances,
   };
 }
