@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -16,12 +15,10 @@ export default function Callback() {
   useEffect(() => {
     const processCallback = async () => {
       try {
-        // Log the full URL for debugging
         console.log('Callback URL:', window.location.href);
         
         const queryParams = new URLSearchParams(location.search);
         
-        // Check for token1 or token2 - Deriv returns these parameters
         const token1 = queryParams.get('token1');
         const token2 = queryParams.get('token2');
         const token = token1 || token2;
@@ -46,16 +43,17 @@ export default function Callback() {
           setIsProcessing(false);
           return;
         }
+
+        // Store token in localStorage for balance fetching
+        localStorage.setItem('deriv_token', JSON.stringify(token));
         
-        // Pass the token for authentication and account balance fetching
         const success = await handleOAuthCallback(token);
         if (success) {
           toast({
             title: "Authentication Successful",
             description: "Welcome to Winner AI Binary Bot!",
           });
-          // Navigate directly to dashboard without delay
-          navigate('/dashboard', { replace: true }); // Replace the current history entry
+          navigate('/dashboard', { replace: true });
         } else {
           setError('Failed to authenticate with Deriv');
           toast({

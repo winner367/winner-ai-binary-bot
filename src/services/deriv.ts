@@ -206,43 +206,86 @@ export const derivAPI = {
     return user?.accountBalances || { demo: 0, real: 0 };
   },
   
-  // Updated method to fetch real balances from Deriv API
+  // Updated method to fetch real balances from Deriv API with token
   fetchAccountBalances: async (): Promise<{ demo: number; real: number }> => {
-    console.log("Fetching latest account balances from Deriv API using APP_ID:", APP_ID);
+    console.log("Fetching latest account balances from Deriv API");
     
-    // In a real implementation, this would call the Deriv API to get the actual balances
-    // using the authorized session token
     const userStr = localStorage.getItem('user');
-    if (!userStr) {
-      console.error("No user found in localStorage, cannot fetch balances");
+    const tokenStr = localStorage.getItem('deriv_token');
+    
+    if (!userStr || !tokenStr) {
+      console.error("No user or token found in localStorage");
       return { demo: 0, real: 0 };
     }
     
     try {
       const user = JSON.parse(userStr) as User;
+      const token = JSON.parse(tokenStr) as string;
       
-      // Simulate API call with APP_ID
-      console.log(`Making balance API request with APP_ID: ${APP_ID}`);
-      await delay(1200); // Simulate network latency
+      // Make API call to Deriv websocket API using user's token
+      const ws = new WebSocket('wss://ws.binaryws.com/websockets/v3?app_id=' + APP_ID);
       
-      // For demo purposes, we'll simulate getting updated balances
-      // In production, replace this with real API calls to Deriv
+      const getBalance = () => new Promise<{ demo: number; real: number }>((resolve, reject) => {
+        ws.onopen = () => {
+          // Authenticate first
+          ws.send(JSON.stringify({
+            authorize: token,
+            req_id: 1
+          }));
+        };
+        
+        ws.onmessage = (msg) => {
+          const response = JSON.parse(msg.data);
+          console.log("WebSocket response:", response);
+          
+          if (response.error) {
+            console.error("WebSocket error:", response.error);
+            reject(response.error);
+            ws.close();
+            return;
+          }
+          
+          if (response.msg_type === 'authorize') {
+            // After successful auth, request balance
+            ws.send(JSON.stringify({
+              balance: 1,
+              subscribe: 1,
+              req_id: 2
+            }));
+          }
+          
+          if (response.msg_type === 'balance') {
+            const balance = response.balance;
+            const accounts = {
+              demo: balance.demo_account ? parseFloat(balance.demo_account.balance) : 0,
+              real: balance.real_account ? parseFloat(balance.real_account.balance) : 0
+            };
+            
+            console.log("Retrieved account balances:", accounts);
+            resolve(accounts);
+            ws.close();
+          }
+        };
+        
+        ws.onerror = (error) => {
+          console.error("WebSocket error:", error);
+          reject(error);
+        };
+        
+        // Timeout after 10 seconds
+        setTimeout(() => {
+          ws.close();
+          reject(new Error("Balance fetch timeout"));
+        }, 10000);
+      });
       
-      // Simulate balance changes (small random fluctuations)
-      // In a real app, these would be the actual balances returned from the API
-      const updatedBalances = {
-        demo: 5000 + Math.floor(Math.random() * 1000), // More realistic demo balance
-        real: 2000 + Math.floor(Math.random() * 500),  // More realistic real balance
-      };
+      const balances = await getBalance();
       
-      console.log("Previous balances:", user.accountBalances);
-      console.log("Updated account balances:", updatedBalances);
-      
-      // Update the stored user with new balances
-      user.accountBalances = updatedBalances;
+      // Update stored user with new balances
+      user.accountBalances = balances;
       localStorage.setItem('user', JSON.stringify(user));
       
-      return updatedBalances;
+      return balances;
     } catch (error) {
       console.error("Error fetching account balances:", error);
       return { demo: 0, real: 0 };
