@@ -1,8 +1,9 @@
+
 // Deriv API service
 import { User } from '../types/auth';
 import { Signal, BotConfig, BotPerformance, MarketType, ContractType, AccountType, TradeHistory } from '../types/trading';
 
-const APP_ID = 71724; // Deriv app ID
+const APP_ID = 23566; // Updated Deriv app ID
 export const OAUTH_REDIRECT_URL = `${window.location.origin}/auth/callback`;
 
 console.log("OAuth Redirect URL:", OAUTH_REDIRECT_URL);
